@@ -3,38 +3,64 @@
 /*=========================
   server_setup
   args:
-
   creates the WKP (upstream) and opens it, waiting for a
   connection.
-
   removes the WKP once a connection has been made
-
   returns the file descriptor for the upstream pipe.
   =========================*/
 int server_setup() {
-  return -1;
+  
+  int from_client;
+
+  char buffer[HANDSHAKE_BUFFER_SIZE];
+
+  mkfifo("luigi", 0600);
+
+  //block on open, recieve mesage
+  printf("[server] handshake: making wkp\n");
+  from_client = open( "luigi", O_RDONLY, 0);
+  read(from_client, buffer, sizeof(buffer));
+  printf("[server] handshake: received [%s]\n", buffer);
+
+  remove("luigi");
+  printf("[server] handshake: removed wkp\n");
+
+  int pid = fork();
+
+  if (pid){
+    close(from_client);
+    wait(-1);
+    return 0;
+  }
+  else{
+    return server_connect();
+  }
 }
 
 
 /*=========================
   server_connect
   args: int from_client
-
   handles the subserver portion of the 3 way handshake
-
   returns the file descriptor for the downstream pipe.
   =========================*/
 int server_connect(int from_client) {
-  return -1;
+  //connect to client, send message
+  *to_client = open(buffer, O_WRONLY, 0);
+  write(*to_client, buffer, sizeof(buffer));
+
+  //read for client
+  read(from_client, buffer, sizeof(buffer));
+  printf("[server] handshake received: %s\n", buffer);
+
+  return to_client;
 }
 
 /*=========================
   server_handshake
   args: int * to_client
-
   Performs the server side pipe 3 way handshake.
   Sets *to_client to the file descriptor to the downstream pipe.
-
   returns the file descriptor for the upstream pipe.
   =========================*/
 int server_handshake(int *to_client) {
@@ -68,10 +94,8 @@ int server_handshake(int *to_client) {
 /*=========================
   client_handshake
   args: int * to_server
-
   Performs the client side pipe 3 way handshake.
   Sets *to_server to the file descriptor for the upstream pipe.
-
   returns the file descriptor for the downstream pipe.
   =========================*/
 int client_handshake(int *to_server) {

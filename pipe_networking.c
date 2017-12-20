@@ -23,7 +23,7 @@ int server_setup() {
 
   int pid = fork();
 
-  if (!pid)
+  if (pid)
     close(from_client);
   
   return from_client;

@@ -22,9 +22,6 @@ int main() {
       printf("i happened\n");
       subserver(from_client);
       exit(0);
-    } else{
-      int status;
-      waitpid(-1, &status, 0 );
     }
   }
   return 0;

@@ -22,9 +22,6 @@ int server_setup() {
   printf("[server] handshake: removed WKP\n");
 
   int pid = fork();
-  
-  if (!pid)
-    return from_client;
 
   return from_client;
 }

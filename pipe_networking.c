@@ -12,8 +12,6 @@ int server_setup() {
   
   int from_client;
 
-  char buffer[HANDSHAKE_BUFFER_SIZE];
-
   mkfifo("luigi", 0600);
 
   //block on open, recieve mesage
@@ -22,6 +20,7 @@ int server_setup() {
   remove("luigi");
   printf("[server] setup: removed wkp\n");
 
+  return from_client;
 }
 
 
@@ -34,7 +33,8 @@ int server_setup() {
 int server_connect(int from_client){
   printf("[forked server] starting handshake\n");
   //connect to client, send message
-  char buffer[BUFFER_SIZE] = ACK;
+  char buffer[BUFFER_SIZE];
+  read(from_client, buffer, BUFFER_SIZE);
   int to_client = open(buffer, O_WRONLY, 0);
   write(to_client, buffer, sizeof(buffer));
 

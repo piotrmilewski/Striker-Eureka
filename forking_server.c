@@ -22,11 +22,9 @@ int main() {
       printf("i happened\n");
       subserver(from_client);
       exit(0);
-    } else {
+    } else{
       int status;
-      wait(&status);
-      printf("waiting\n");
-      close(from_client);
+      waitpid(-1, &status, 0 );
     }
   }
   return 0;
@@ -36,11 +34,11 @@ void subserver(int from_client) {
   int to_client = server_connect(from_client);
   
   char buf[BUFFER_SIZE];
-  read(from_client, buf, BUFFER_SIZE);
-    
-  process(buf);
-    
-  write(to_client, buf, BUFFER_SIZE);
+  while( read(from_client, buf, sizeof(buf))){
+    process(buf);
+    //printf("%s",buf);
+    write(to_client, buf, BUFFER_SIZE);
+  }
 }
 
 void process(char * s) {

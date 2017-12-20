@@ -15,11 +15,21 @@ int main() {
   int to_client;
   int from_client;
   while (1){
-    from_client = server_setup();
-    if (from_client){ //child
+    from_client = server_setup(&to_client);
+
+    int pid = fork();
+    if (pid){ //child
+      printf("i happened\n");
       subserver(from_client);
+      exit(0);
+    } else {
+      int status;
+      wait(&status);
+      printf("waiting\n");
+      close(from_client);
     }
   }
+  return 0;
 }
 
 void subserver(int from_client) {

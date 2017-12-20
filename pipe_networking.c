@@ -17,23 +17,11 @@ int server_setup() {
   mkfifo("luigi", 0600);
 
   //block on open, recieve mesage
-  printf("[server] handshake: making wkp\n");
+  printf("[server] setup: making wkp\n");
   from_client = open( "luigi", O_RDONLY, 0);
-  read(from_client, buffer, sizeof(buffer));
-  printf("[server] handshake: received [%s]\n", buffer);
-
   remove("luigi");
-  printf("[server] handshake: removed wkp\n");
+  printf("[server] setup: removed wkp\n");
 
-  int pid = fork();
-
-  if (pid){ //parent
-    close(from_client);
-    return 0;
-  }
-  else{ //child
-    return from_client;
-  }
 }
 
 
@@ -43,15 +31,16 @@ int server_setup() {
   handles the subserver portion of the 3 way handshake
   returns the file descriptor for the downstream pipe.
   =========================*/
-int server_connect(int from_client) {
+int server_connect(int from_client){
+  printf("[forked server] starting handshake\n");
   //connect to client, send message
-  char buffer[BUFFER_SIZE];
+  char buffer[BUFFER_SIZE] = ACK;
   int to_client = open(buffer, O_WRONLY, 0);
   write(to_client, buffer, sizeof(buffer));
 
   //read for client
   read(from_client, buffer, sizeof(buffer));
-  printf("[server] handshake received: %s\n", buffer);
+  printf("[forked server] handshake received: %s\n", buffer);
 
   return to_client;
 }
@@ -63,6 +52,7 @@ int server_connect(int from_client) {
   Sets *to_client to the file descriptor to the downstream pipe.
   returns the file descriptor for the upstream pipe.
   =========================*/
+/*
 int server_handshake(int *to_client) {
 
   int from_client;
@@ -90,6 +80,7 @@ int server_handshake(int *to_client) {
 
   return from_client;
 }
+*/
 
 /*=========================
   client_handshake
@@ -99,7 +90,7 @@ int server_handshake(int *to_client) {
   returns the file descriptor for the downstream pipe.
   =========================*/
 int client_handshake(int *to_server) {
-  printf("start");
+  printf("start\n");
 
   int from_server;
   char buffer[HANDSHAKE_BUFFER_SIZE];
@@ -107,16 +98,17 @@ int client_handshake(int *to_server) {
   //send pp name to server
   printf("[client] handshake: connecting to wkp\n");
   *to_server = open( "luigi", O_WRONLY, 0);
-  if ( *to_server == -1 )
+  if ( *to_server == -1 ){
+    printf("fucked up\n");
     exit(1);
-
+  }
   //make private pipe
   sprintf(buffer, "%d", getpid() );
   mkfifo(buffer, 0600);
 
   write(*to_server, buffer, sizeof(buffer));
 
-  printf("i wrote");
+  printf("i wrote\n");
 
   //open and wait for connection
   from_server = open(buffer, O_RDONLY, 0);

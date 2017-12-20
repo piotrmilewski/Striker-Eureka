@@ -15,18 +15,22 @@ int main() {
   int to_client;
   int from_client;
   while (1){
-    from_client = server_handshake( &to_client);
-
-    char buf[BUFFER_SIZE];
-    read(from_client, buf, BUFFER_SIZE);
-    
-    process(buf);
-    
-    write(to_client, buf, BUFFER_SIZE);
+    from_client = server_setup();
+    if (from_client){ //child
+      subserver(from_client);
+    }
   }
 }
 
 void subserver(int from_client) {
+  int to_client = server_connect(from_client);
+  
+  char buf[BUFFER_SIZE];
+  read(from_client, buf, BUFFER_SIZE);
+    
+  process(buf);
+    
+  write(to_client, buf, BUFFER_SIZE);
 }
 
 void process(char * s) {

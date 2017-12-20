@@ -27,13 +27,12 @@ int server_setup() {
 
   int pid = fork();
 
-  if (pid){
+  if (pid){ //parent
     close(from_client);
-    wait(-1);
     return 0;
   }
-  else{
-    return server_connect();
+  else{ //child
+    return from_client;
   }
 }
 
@@ -46,8 +45,9 @@ int server_setup() {
   =========================*/
 int server_connect(int from_client) {
   //connect to client, send message
-  *to_client = open(buffer, O_WRONLY, 0);
-  write(*to_client, buffer, sizeof(buffer));
+  char buffer[BUFFER_SIZE];
+  int to_client = open(buffer, O_WRONLY, 0);
+  write(to_client, buffer, sizeof(buffer));
 
   //read for client
   read(from_client, buffer, sizeof(buffer));
@@ -99,6 +99,7 @@ int server_handshake(int *to_client) {
   returns the file descriptor for the downstream pipe.
   =========================*/
 int client_handshake(int *to_server) {
+  printf("start");
 
   int from_server;
   char buffer[HANDSHAKE_BUFFER_SIZE];
@@ -114,6 +115,8 @@ int client_handshake(int *to_server) {
   mkfifo(buffer, 0600);
 
   write(*to_server, buffer, sizeof(buffer));
+
+  printf("i wrote");
 
   //open and wait for connection
   from_server = open(buffer, O_RDONLY, 0);

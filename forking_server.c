@@ -6,25 +6,25 @@ void subserver(int from_client);
 
 static void sighandler(int signo) {
   if (signo == SIGINT) {
-    remove("luigi");
+    printf("\nI take pipe away from you now\n");
+    remove(SERVERNAME);
     exit(0);
   }
 }
 
 int main() {
-  int to_client;
-  int from_client;
-  while (1){
-    from_client = server_setup(&to_client);
 
-    int pid = fork();
-    if (pid){ //child
-      printf("i happened\n");
+  signal( SIGINT, sighandler);
+
+  int from_client;
+  int serverPID = getpid();
+  while (1){
+    from_client = server_setup();
+
+    if (serverPID != getpid()){ //child
       subserver(from_client);
-      exit(0);
     }
   }
-  return 0;
 }
 
 void subserver(int from_client) {
@@ -32,10 +32,12 @@ void subserver(int from_client) {
   
   char buf[BUFFER_SIZE];
   while( read(from_client, buf, sizeof(buf))){
+    printf("[subserver] received: %s\n", buf);
     process(buf);
-    //printf("%s",buf);
-    write(to_client, buf, BUFFER_SIZE);
+    printf("[subserver] sending: %s\n", buf);
+    write(to_client, buf, sizeof(buf));
   }
+  exit(0);
 }
 
 void process(char * s) {
